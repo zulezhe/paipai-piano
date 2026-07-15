@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"Main window capabilities for baby piano","local":true,"windows":["main"],"permissions":["core:default","core:window:allow-minimize","core:window:allow-close","core:window:allow-start-dragging","core:window:allow-show","core:window:allow-hide"]}}

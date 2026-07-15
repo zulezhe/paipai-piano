@@ -1,0 +1,53 @@
+{
+  "$schema": "https://tauri.app/v2/schema.json",
+  "identifier": "com.babypiano.app",
+  "productName": "BabyPiano",
+  "version": "0.1.0",
+  "build": {
+    "frontendDist": "../dist",
+    "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:5100"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "宝宝钢琴",
+        "fullscreen": false,
+        "maximized": true,
+        "alwaysOnTop": true,
+        "decorations": false,
+        "transparent": false,
+        "visible": true
+      }
+    ],
+    "trayIcon": {
+      "iconPath": "icons/icon.png"
+    },
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src 'self' http://asset.localhost https://asset.localhost tauri: asset:"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "msi"],
+    "resources": [
+      "resources/samples/*"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "perMachine"
+      },
+      "wix": {
+        "language": "en-US"
+      },
+      "webviewInstallMode": {
+        "type": "skip"
+      }
+    },
+    "icon": [
+      "icons/icon.ico"
+    ]
+  }
+}

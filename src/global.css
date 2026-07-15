@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* 鲜艳儿童友好背景：多层渐变 */
+.app-bg {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 182, 193, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 80% 30%, rgba(173, 216, 230, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 50% 80%, rgba(255, 215, 0, 0.3) 0%, transparent 60%),
+    linear-gradient(135deg, #a78bfa 0%, #f472b6 50%, #fbbf24 100%);
+  background-attachment: fixed;
+}
+
+/* 标题栏不要拖拽时穿透到下层按钮 */
+[data-tauri-drag-region] button {
+  -webkit-app-region: no-drag;
+}
+
+/* ============== 自定义动画 ============== */
+
+/* 彩纸下落 */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10vh) translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) translateX(var(--drift, 0)) rotate(var(--rotate-end, 720deg));
+    opacity: 0.6;
+  }
+}
+
+/* 吉祥物弹跳 (每次按键) */
+@keyframes mascot-bounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  30% {
+    transform: translateY(-12px) scale(1.15);
+  }
+  60% {
+    transform: translateY(-4px) scale(1.05);
+  }
+}
+
+/* 完成庆祝摆动 */
+@keyframes mascot-celebrate {
+  0%, 100% {
+    transform: rotate(-8deg) scale(1.05);
+  }
+  50% {
+    transform: rotate(8deg) scale(1.05);
+  }
+}
+.mascot-celebrate {
+  animation: mascot-celebrate 0.8s ease-in-out infinite;
+}
+
+/* 高亮脉冲 (教学模式当前音符) */
+@keyframes highlight-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(244, 114, 182, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(244, 114, 182, 0.3);
+  }
+}
+
+/* 进度条发光 */
+@keyframes progress-fill-glow {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.15);
+  }
+}

@@ -1,0 +1,27 @@
+[package]
+name = "baby-piano"
+version = "0.1.0"
+edition = "2021"
+authors = ["you"]
+description = "Baby piano Windows desktop app"
+
+[build-dependencies]
+tauri-build = { version = "2.0", features = [] }
+
+[dependencies]
+tauri = { version = "2.7.0", features = ["tray-icon"] }
+winapi = { version = "0.3", features = [
+  "winuser",
+  "windef",
+  "libloaderapi",
+  "errhandlingapi",
+  "processthreadsapi"
+] }
+lazy_static = "1.4"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true
