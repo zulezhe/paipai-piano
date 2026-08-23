@@ -4,10 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-**宝宝钢琴** - Windows 桌面应用，全屏显示钢琴键盘，3 种模式：
-- **宝宝模式**（默认启动）：随便按就有声，能量条满触发鼓励音效 + 彩纸飞溅
-- **教学模式**：5 首儿歌（小星星/两只老虎/生日快乐/欢乐颂/卡农简化版），高亮引导按键
-- **大神模式**：自由弹奏，25 键 (C4-C6 两个八度)
+**宝宝钢琴** - Windows 桌面应用，全屏显示钢琴键盘，单模式（宝宝模式）：
+- 随便按就有声：物理键映射 49 键钢琴 (C3-B7 四个八度)，未映射键随机出 C 大调五声音阶
+- 全键盘锁定：Rust 钩子吞掉一切按键转发前端出声，系统热键/其他软件快捷键全部失效
+- 视觉反馈：琴键按下高亮下压、动物 emoji 跳舞 + 音符上飘
+- 能量条满 100 触发鼓励音效（钢琴采样混音合成的 tada/cheer/applause）+ 彩纸飞溅
 
 ## 构建和运行
 
@@ -26,21 +27,22 @@ pnpm run dev              # 仅启动前端开发服务器（端口 5100）
 
 ### 前后端通信
 
-前端通过 `@tauri-apps/api` 的 `invoke()` 调用 Rust 端的 `#[tauri::command]` 函数。当前仅有 `exit_app` 命令（TitleBar X 按钮兜底退出）。
+前端通过 `@tauri-apps/api` 的 `invoke()` 调用 Rust 端的 `#[tauri::command]` 函数：
+- `exit_app`（TitleBar X 按钮兜底退出）
+- `set_keyboard_lock(locked)`（启动即 true；进入锁定时钩子会重装抢回链头，压制后启动的钩子型热键软件）
 
 ### 前端（src/）
 
 - `src/` 是 Vite root（不是项目根），路径别名 `@` → `./src`
-- `App.tsx` - 主入口，挂载 AppStateProvider/TitleBar/ModeSwitch/模式路由
-- `state/AppState.tsx` - 全局状态，单 `useReducer` Context（无第三方状态库）
-- `data/piano.ts` - 25 键映射表 (音符 ID / 频率 / 物理键字符 / 采样文件名)
-- `data/songs.ts` - 5 首教学曲库 (SongNote 序列 + 难度 + BPM)
-- `audio/AudioEngine.ts` - Web Audio 单例引擎，预加载采样 + Oscillator 回退
-- `hooks/usePianoKeyboard.ts` - window keydown 监听，物理键 → 音符
-- `components/PianoKeyboard.tsx` - 25 键展示组件 (15 白键 + 10 黑键叠加)
-- `components/{BabyMode,TeachMode,ProMode}.tsx` - 三种模式视图
+- `App.tsx` - 主入口，挂载 AppStateProvider/TitleBar/BabyMode，启动即锁键盘
+- `state/AppState.tsx` - 全局状态，单 `useReducer` Context（无第三方状态库），仅 PRESS_KEY/RESET_BABY
+- `data/piano.ts` - 49 键映射表 (音符 ID / 频率 / 物理键字符 / 采样文件名)
+- `audio/AudioEngine.ts` - Web Audio 单例引擎，预加载采样 + Oscillator 回退 + 就绪前待播队列
+- `hooks/usePianoKeyboard.ts` - 双通道输入（window keydown + Tauri kb-raw 事件），物理键 → 音符，未映射键随机五声音阶兜底
+- `components/PianoKeyboard.tsx` - 49 键展示组件 (29 白键 + 20 黑键叠加)，支持按下高亮反馈
+- `components/BabyMode.tsx` - 宝宝模式视图（唯一模式）：能量条/吉祥物/动物跳舞动画/彩纸
 - `components/Confetti.tsx` - 彩纸飞溅 (纯 DOM)
-- `components/{ModeSwitch,TitleBar}.tsx` - 模式切换 + 鼠标退出
+- `components/TitleBar.tsx` - 标题栏 + 鼠标退出
 - `components/ui/` - Radix UI 基础组件（button, dialog, tabs, select 等，部分未启用）
 - `lib/utils.ts` - cn() 工具函数（clsx + tailwind-merge）
 
@@ -54,31 +56,28 @@ pnpm run dev              # 仅启动前端开发服务器（端口 5100）
 
 ### 键盘拦截策略
 
-`WH_KEYBOARD_LL` 低级钩子运行在专用线程上，拦截以下组合键：
-- `Win` (左右键，永远吞)
-- `Alt+F4`
-- `Alt+Tab`
-- `Ctrl+Esc`
-- `Win+Tab`
+`WH_KEYBOARD_LL` 低级钩子运行在专用线程上，**宝宝模式（LOCK_ALL）吞掉所有按键**，keydown 时把 vkCode 通过 `kb-raw` 事件转发给前端出声。退出前同步卸载（UnhookWindowsHookEx + 等待线程退出），避免 `process::exit` 抢跑。
 
-**字母键和数字键透传**到 webview，由前端 JS（`usePianoKeyboard`）映射为钢琴音符。
+钩子链注意：LL hook 链后安装者先调用。进入锁定时调用 `reinstall()` 重装钩子抢回链头，可压制后启动的钩子型热键软件（如 Snipaste）；`GetAsyncKeyState` 轮询型热键软件用户态无法拦截（已知限制）。
 
 不使用 `rdev`：Tauri 2 有已知 focus bug (#14770)，原生 winapi 调用更稳。
 
 ### 音频策略
 
-- 采样路径：`src-tauri/resources/samples/{NOTE}.mp3` (25 个音符) + `_cheer/{applause,cheer,tada}.mp3` (3 个鼓励音效)
+- 采样路径：`src-tauri/resources/samples/{NOTE}.mp3` (49 个音符 C3-B7) + `_cheer/{applause,cheer,tada}.mp3` (3 个鼓励音效，由钢琴采样 ffmpeg 混音合成)
 - 通过 `convertFileSrc("samples/C4.mp3")` 解析运行时 URL，绕开 Vite root=src 的怪异配置
 - `bundle.resources` 字段在 `tauri.conf.json` 中声明，确保打包到安装包
 - 加载失败的音符自动回退到 `OscillatorNode` + 频率合成（开发期无采样也能运行）
+- AudioContext 就绪前的按键进入待播队列，就绪后补放（不丢弃）
 
 ### 物理键映射
 
-25 键覆盖 C4-C6，标准两八度钢琴布局：
+49 键覆盖 C3-B7 四个八度；其中 C4-C6 两个八度有物理键，C3-B3 / C7-B7 仅鼠标/触摸点击：
 
 - 八度 4 (z s x d c v g b h n j m) → C4 Cs4 D4 Ds4 E4 F4 Fs4 G4 Gs4 A4 As4 B4
 - 八度 5 (q 2 w 3 e t 6 y 7 u 8 i) → C5 Cs5 D5 Ds5 E5 F5 Fs5 G5 Gs5 A5 As5 B5
 - C6 (o)
+- 未映射的物理键（宝宝模式）→ 随机 C 大调五声音阶 (C3-G6)
 
 ### 状态管理
 
@@ -91,14 +90,4 @@ pnpm run dev              # 仅启动前端开发服务器（端口 5100）
 - **Vite root 是 src/**：构建输出到 `../dist`，开发端口 5100
 - **窗口配置**：maximized + alwaysOnTop + decorations:false + transparent:false
 - **鼠标退出**：Alt+F4 被拦截，退出通道 = TitleBar X 按钮 + 托盘"退出"
-- **采样文件**：用户需自行从 [musical-artifacts.com](https://musical-artifacts.com) 下载 CC-BY 钢琴采样包，用 Polyphone 导出 25 个单音符 MP3 放入 `src-tauri/resources/samples/`（详见 plan 文件）
-
-## 音频文件准备（用户操作）
-
-musical-artifacts.com 的钢琴采样多为 `.sf2` (SoundFont) 格式，需要：
-1. 下载钢琴采样包（推荐 [Real Piano Soundfont #4819](https://musical-artifacts.com/artifacts/4819) 或 CC-BY 标记的钢琴音源）
-2. 用 [Polyphone](https://www.polyphone-soundfonts.com/) 拆分出 25 个单音符 (C4, Cs4, D4, Ds4, ... C6)
-3. 导出为 MP3 放入 `src-tauri/resources/samples/`
-4. 准备 3 个鼓励音效 → `src-tauri/resources/samples/_cheer/{applause,cheer,tada}.mp3`
-
-在采样到位前，应用会自动用 OscillatorNode 合成音色（音色不如真实采样但完全可用）。
+- **采样文件**：49 个采样已全部就位（C4-C6 为原始采样，C3-B3/C7-B7 由 ffmpeg 移调合成，鼓励音效由钢琴采样混音合成），无需再手工准备

@@ -1,16 +1,49 @@
 // 宝宝模式：随便按就有声，进度条满 100 触发鼓励 + 彩纸
-// 卡通吉祥物在每次按键时弹跳
+// 卡通吉祥物在每次按键时弹跳；每次按键随机冒出动物跳舞 + 音符上飘
 import { useEffect, useRef, useState } from 'react'
 import { PianoKeyboard } from './PianoKeyboard'
 import { Confetti } from './Confetti'
 import { audioEngine } from '../audio/AudioEngine'
 import { useAppState } from '../state/AppState'
 
+// 动物 emoji 库：按键时随机登场跳舞
+const CRITTERS = ['🐶', '🐱', '🐰', '🦊', '🐻', '🐼', '🐯', '🐸', '🐵', '🐷', '🐨', '🦁']
+const NOTE_EMOJIS = ['🎵', '🎶', '🎼']
+
+interface Critter {
+  id: number
+  emoji: string
+  note: string
+  x: number // 水平位置 vw%
+  delay: number // 音符延迟 s
+}
+
+let critterSeq = 0
+
 export function BabyMode() {
   const { state, dispatch } = useAppState()
   const [showConfetti, setShowConfetti] = useState(false)
   const [pressCount, setPressCount] = useState(0)
+  const [critters, setCritters] = useState<Critter[]>([])
   const lastCheerAt = useRef(0)
+
+  // 每次物理/鼠标按键：冒出一个动物跳舞 + 音符上飘（上限 6 个防 DOM 爆炸）
+  useEffect(() => {
+    if (!state.lastPressedNote) return
+    const id = ++critterSeq
+    const critter: Critter = {
+      id,
+      emoji: CRITTERS[Math.floor(Math.random() * CRITTERS.length)],
+      note: NOTE_EMOJIS[Math.floor(Math.random() * NOTE_EMOJIS.length)],
+      x: 8 + Math.random() * 84,
+      delay: Math.random() * 0.3,
+    }
+    setCritters(cs => [...cs.slice(-5), critter])
+    const t = setTimeout(() => {
+      setCritters(cs => cs.filter(c => c.id !== id))
+    }, 2000)
+    return () => clearTimeout(t)
+  }, [state.lastPressedAt, state.lastPressedNote])
 
   // 进度满 100 -> 播放鼓励 + 显示彩纸
   useEffect(() => {
@@ -51,7 +84,31 @@ export function BabyMode() {
     : '超级棒！🎉'
 
   return (
-    <div className="flex flex-col items-center justify-start gap-6 pb-8 pt-4">
+    <div className="absolute inset-0 flex flex-col items-center justify-start gap-4 pt-16 pb-4 overflow-auto">
+      {/* 动物跳舞 + 音符上飘动画层 */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden z-20">
+        {critters.map(c => (
+          <div
+            key={c.id}
+            className="absolute bottom-[38%]"
+            style={{ left: `${c.x}%` }}
+          >
+            <div
+              className="text-6xl drop-shadow-lg"
+              style={{ animation: 'critter-dance 1.8s ease-in-out' }}
+            >
+              {c.emoji}
+            </div>
+            <div
+              className="absolute -top-4 left-1/2 text-3xl"
+              style={{ animation: `note-float 1.6s ease-out ${c.delay}s forwards` }}
+            >
+              {c.note}
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* 顶部吉祥物 + 鼓励语 */}
       <div className="flex items-center gap-4">
         <div
@@ -96,11 +153,13 @@ export function BabyMode() {
         </div>
       </div>
 
-      {/* 钢琴键盘 */}
+      {/* 钢琴键盘（放大 + 物理按键按下反馈） */}
       <PianoKeyboard
-        theme="baby"
         onKeyClick={handleKey}
-        className="max-w-6xl"
+        activeNote={state.lastPressedNote}
+        activeAt={state.lastPressedAt}
+        heightPx={420}
+        className="w-full"
       />
 
       {/* 彩纸飞溅 */}

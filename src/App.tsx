@@ -1,23 +1,27 @@
-// 宝宝钢琴应用入口
-// 三种模式：宝宝(默认) / 教学 / 大神
+// 宝宝钢琴应用入口：唯一模式 = 宝宝模式（全键盘锁定 + 随便按就有声）
 import { useEffect, useState } from 'react'
-import { AppStateProvider, useAppState } from './state/AppState'
+import { invoke } from '@tauri-apps/api/core'
+import { listen, type UnlistenFn } from '@tauri-apps/api/event'
+import { AppStateProvider } from './state/AppState'
 import { usePianoKeyboard } from './hooks/usePianoKeyboard'
 import { audioEngine } from './audio/AudioEngine'
 import { TitleBar } from './components/TitleBar'
-import { ModeSwitch } from './components/ModeSwitch'
 import { BabyMode } from './components/BabyMode'
-import { TeachMode } from './components/TeachMode'
-import { ProMode } from './components/ProMode'
 import './global.css'
 
 function AppContent() {
-  const { state } = useAppState()
   const [audioReady, setAudioReady] = useState(false)
   const [audioLoading, setAudioLoading] = useState(false)
 
   // 挂载全局键盘监听
   usePianoKeyboard()
+
+  // 启动即全键盘锁定（Rust 钩子吞掉一切按键，仅转发出声）
+  useEffect(() => {
+    invoke('set_keyboard_lock', { locked: true }).catch(() => {
+      // 非 Tauri 环境（纯浏览器 dev）忽略
+    })
+  }, [])
 
   // 首次用户交互时初始化音频（autoplay 策略）
   useEffect(() => {
@@ -33,27 +37,19 @@ function AppContent() {
     }
     window.addEventListener('pointerdown', unlock, { once: true })
     window.addEventListener('keydown', unlock, { once: true })
+    // 全键盘锁定下 webview 收不到 keydown，按键解锁走 Rust 转发事件
+    const unlisten: Promise<UnlistenFn> = listen('kb-raw', unlock)
     return () => {
       window.removeEventListener('pointerdown', unlock)
       window.removeEventListener('keydown', unlock)
+      unlisten.then((fn) => fn())
     }
   }, [audioReady, audioLoading])
 
   return (
     <div className="relative w-screen h-screen overflow-hidden app-bg">
       <TitleBar />
-
-      {/* 顶部右侧模式切换（在 TitleBar 下方留出空间） */}
-      <div className="absolute top-10 right-4 z-30">
-        <ModeSwitch />
-      </div>
-
-      {/* 主体内容 */}
-      <main className="absolute inset-0 pt-20 pb-4 px-4 overflow-auto">
-        {state.mode === 'baby' && <BabyMode />}
-        {state.mode === 'teach' && <TeachMode />}
-        {state.mode === 'pro' && <ProMode />}
-      </main>
+      <BabyMode />
 
       {/* 加载提示遮罩 */}
       {audioLoading && !audioReady && (

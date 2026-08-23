@@ -12,6 +12,8 @@ class AudioEngine {
   private cheerBuffers: AudioBuffer[] = []
   private initPromise: Promise<void> | null = null
   private failedNotes = new Set<string>()
+  /** ctx 就绪前收到的按键，就绪后补放（宝宝模式头几按不能静音） */
+  private pendingNotes: string[] = []
 
   /** 是否已初始化 */
   get isInitialized(): boolean {
@@ -107,15 +109,37 @@ class AudioEngine {
 
   /** 播放音符：优先用采样，回退振荡器 */
   playNote(noteId: string): void {
-    if (!this.ctx) {
-      // 未初始化（首次按键前没点击），同步触发 init
-      void this.init()
+    // ctx 未就绪（首次按键/失焦挂起）：入队并异步恢复，就绪后补放，
+    // 不再直接丢弃——否则宝宝模式开头狂按的键全部静音
+    if (!this.ctx || this.ctx.state === 'suspended') {
+      if (this.pendingNotes.length < 8) {
+        this.pendingNotes.push(noteId)
+      }
+      void this._ensureRunning()
       return
     }
-    if (this.ctx.state === 'suspended') {
-      void this.resume()
-    }
+    this._playNow(noteId)
+  }
 
+  private async _ensureRunning(): Promise<void> {
+    if (!this.ctx) {
+      await this.init()
+    } else if (this.ctx.state === 'suspended') {
+      await this.resume()
+    }
+    this._flushPending()
+  }
+
+  private _flushPending(): void {
+    if (!this.ctx || this.ctx.state !== 'running' || this.pendingNotes.length === 0) return
+    // 只补放最近 3 个，避免队列积压后连环轰炸
+    const batch = this.pendingNotes.splice(-3)
+    for (const noteId of batch) {
+      this._playNow(noteId)
+    }
+  }
+
+  private _playNow(noteId: string): void {
     const buffer = this.noteBuffers.get(noteId)
     if (buffer) {
       this._playBuffer(buffer, 0.9)
