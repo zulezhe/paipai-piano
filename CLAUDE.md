@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-**宝宝钢琴** - Windows 桌面应用，全屏显示钢琴键盘，单模式（宝宝模式）：
+**派派钢琴** - Windows 桌面应用，全屏显示钢琴键盘，单模式（宝宝模式）：
 - 随便按就有声：物理键映射 49 键钢琴 (C3-B7 四个八度)，未映射键随机出 C 大调五声音阶
 - 全键盘锁定：Rust 钩子吞掉一切按键转发前端出声，系统热键/其他软件快捷键全部失效
 - 视觉反馈：琴键按下高亮下压、动物 emoji 跳舞 + 音符上飘

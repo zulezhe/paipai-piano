@@ -22,7 +22,7 @@ export function TitleBar() {
         className="flex items-center gap-2 text-white/90 font-bold text-sm pointer-events-none"
       >
         <span className="text-xl">🎹</span>
-        <span>宝宝钢琴</span>
+        <span>派派钢琴</span>
       </div>
 
       {/* 右侧退出按钮 */}

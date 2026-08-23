@@ -1,4 +1,4 @@
-// 宝宝钢琴应用入口：唯一模式 = 宝宝模式（全键盘锁定 + 随便按就有声）
+// 派派钢琴应用入口：唯一模式 = 宝宝模式（全键盘锁定 + 随便按就有声）
 import { useEffect, useState } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { listen, type UnlistenFn } from '@tauri-apps/api/event'

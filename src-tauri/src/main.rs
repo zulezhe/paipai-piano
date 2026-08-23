@@ -1,4 +1,4 @@
-// 宝宝钢琴应用入口
+// 派派钢琴应用入口
 // 职责：构建托盘、安装键盘钩子、暴露 exit_app 命令
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 

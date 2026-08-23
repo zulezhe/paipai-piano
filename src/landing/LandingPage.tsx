@@ -100,7 +100,7 @@ export function LandingPage() {
       {/* 顶部导航 */}
       <header className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
         <div className="flex items-center gap-2 text-xl font-extrabold">
-          <span className="text-2xl">🎹</span> 宝宝钢琴
+          <span className="text-2xl">🎹</span> 派派钢琴
         </div>
         <nav className="flex items-center gap-6 text-sm">
           <a href="#play" className="opacity-80 hover:opacity-100">在线试玩</a>
@@ -157,7 +157,7 @@ export function LandingPage() {
 
       {/* 特性 */}
       <section id="features" className="max-w-5xl mx-auto px-6 py-14">
-        <h2 className="text-3xl font-extrabold text-center mb-10">为什么选宝宝钢琴</h2>
+        <h2 className="text-3xl font-extrabold text-center mb-10">为什么选派派钢琴</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {FEATURES.map(f => (
             <div
@@ -177,9 +177,9 @@ export function LandingPage() {
         <h2 className="text-3xl font-extrabold text-center mb-10">项目背景</h2>
         <div className="rounded-3xl bg-white/10 border border-white/15 backdrop-blur-sm p-8 md:p-10 text-lg leading-loose text-white/90 space-y-5">
           <p>
-            这个项目源于一件每位程序员家长都懂的事：我在用电脑工作的时候，
+            这个项目源于一件每位有娃的家庭都懂的事：我在电脑前忙碌的时候，
             家里的宝宝<span className="font-bold text-yellow-200">派派</span>总喜欢凑过来拍打键盘。
-            小手一挥，代码被选中的选中、删掉的删掉，窗口关了一片，
+            小手一挥，文字被选中的选中、删掉的删掉，窗口关了一片，
             每次都把我的内容弄得一团糟。
           </p>
           <p>
@@ -211,7 +211,7 @@ export function LandingPage() {
 
       {/* 页脚 */}
       <footer className="border-t border-white/15 py-8 text-center text-white/60 text-sm">
-        宝宝钢琴 · 免费开源 · 采样基于真实钢琴 ·
+        派派钢琴 · 免费开源 · 采样基于真实钢琴 ·
         桌面版支持 Windows 10/11
       </footer>
     </div>
