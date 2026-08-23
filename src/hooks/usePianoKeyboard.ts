@@ -1,9 +1,8 @@
 // 全局钢琴键盘监听：物理按键 -> 音符
 // 两条输入通道：
-//  1. window keydown（教学/大神模式：按键透传时走这里）
-//  2. Tauri kb-raw 事件（宝宝模式：Rust 钩子全吞按键后转发 vkCode）
+//  1. window keydown（浏览器/落地页，桌面端透传时也走这里）
+//  2. Tauri kb-raw 事件（宝宝模式：Rust 钩子全吞按键后转发 vkCode，仅桌面端）
 import { useEffect } from 'react'
-import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import { KEY_CHAR_TO_NOTE } from '../data/piano'
 import { audioEngine } from '../audio/AudioEngine'
 import { useAppState } from '../state/AppState'
@@ -25,6 +24,22 @@ export function usePianoKeyboard() {
   const { dispatch } = useAppState()
 
   useEffect(() => {
+    // Tauri kb-raw 通道：Rust 钩子吞掉所有按键后转发 vkCode（仅 keydown，无 repeat）
+    // 纯浏览器（落地页）无此通道，跳过
+    let disposed = false
+    let unlistenFn: (() => void) | null = null
+    if ('__TAURI_INTERNALS__' in window) {
+      import('@tauri-apps/api/event').then(({ listen }) =>
+        listen<number>('kb-raw', (event) => {
+          const vk = event.payload
+          if (MODIFIER_VKS.has(vk)) return // 修饰键吞掉不发声
+          pressNote(vkToChar(vk), false)
+        }),
+      ).then((fn) => {
+        if (disposed) fn()
+        else unlistenFn = fn
+      }).catch(() => { /* 非 Tauri 环境忽略 */ })
+    }
     // 统一发音入口：修饰键组合一律不弹琴（锁定模式下修饰键也直接忽略）
     // 未映射到琴键的按键 → 随机五声音阶，兑现"随便按就有声"
     const pressNote = (ch: string | null, hasModifier: boolean) => {
@@ -44,17 +59,11 @@ export function usePianoKeyboard() {
       pressNote(e.key.toLowerCase(), false)
     }
 
-    // 宝宝模式锁定通道：Rust 钩子吞掉所有按键后转发 vkCode（仅 keydown，无 repeat）
-    const unlisten: Promise<UnlistenFn> = listen<number>('kb-raw', (event) => {
-      const vk = event.payload
-      if (MODIFIER_VKS.has(vk)) return // 修饰键吞掉不发声
-      pressNote(vkToChar(vk), false)
-    })
-
     window.addEventListener('keydown', onKeydown)
     return () => {
       window.removeEventListener('keydown', onKeydown)
-      unlisten.then((fn) => fn())
+      disposed = true
+      unlistenFn?.()
     }
   }, [dispatch])
 }

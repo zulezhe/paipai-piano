@@ -44,23 +44,23 @@ class AudioEngine {
     }
   }
 
+  /** 解析采样 URL：Tauri 用 convertFileSrc（resources 目录），浏览器用相对路径 */
+  private async _resolveSampleUrl(rel: string): Promise<string> {
+    if ('__TAURI_INTERNALS__' in window) {
+      const mod = await import('@tauri-apps/api/core')
+      return mod.convertFileSrc(rel)
+    }
+    // 纯浏览器（落地页）：vite-plugin-static-copy 已把采样复制为静态资源
+    return rel
+  }
+
   private async _loadSamples(): Promise<void> {
     if (!this.ctx) return
-
-    // 尝试动态导入 convertFileSrc（仅在 Tauri 环境可用）
-    let convertFileSrc: ((path: string) => string) | null = null
-    try {
-      const mod = await import('@tauri-apps/api/core')
-      convertFileSrc = mod.convertFileSrc
-    } catch {
-      convertFileSrc = null
-    }
 
     // 并发加载所有音符采样
     const noteTasks = PIANO_KEYS.map(async (key) => {
       try {
-        if (!convertFileSrc) throw new Error('convertFileSrc unavailable')
-        const url = convertFileSrc(`${SAMPLE_BASE}/${key.sample}.mp3`)
+        const url = await this._resolveSampleUrl(`${SAMPLE_BASE}/${key.sample}.mp3`)
         const buf = await this._fetchAndDecode(url)
         this.noteBuffers.set(key.id, buf)
       } catch (e) {
@@ -72,8 +72,7 @@ class AudioEngine {
 
     const cheerTasks = CHEER_FILES.map(async (name) => {
       try {
-        if (!convertFileSrc) throw new Error('convertFileSrc unavailable')
-        const url = convertFileSrc(`${SAMPLE_BASE}/_cheer/${name}.mp3`)
+        const url = await this._resolveSampleUrl(`${SAMPLE_BASE}/_cheer/${name}.mp3`)
         const buf = await this._fetchAndDecode(url)
         this.cheerBuffers.push(buf)
       } catch (e) {
