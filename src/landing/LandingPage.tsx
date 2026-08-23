@@ -61,7 +61,7 @@ function OnlinePiano() {
         onKeyClick={handleKeyClick}
         activeNote={state.lastPressedNote}
         activeAt={state.lastPressedAt}
-        heightPx={340}
+        heightPx={420}
         className="w-full"
       />
       <p className="text-white/70 text-sm">
@@ -144,7 +144,7 @@ export function LandingPage() {
       </section>
 
       {/* 在线钢琴 */}
-      <section id="play" className="max-w-[1400px] mx-auto px-6 py-10">
+      <section id="play" className="w-full mx-auto px-4 py-10">
         <h2 className="text-3xl font-extrabold text-center mb-2">在线试玩</h2>
         <p className="text-center text-white/70 mb-8">鼠标点琴键，或直接敲电脑键盘</p>
         <div className="rounded-3xl bg-black/15 border border-white/15 backdrop-blur-sm p-6">
