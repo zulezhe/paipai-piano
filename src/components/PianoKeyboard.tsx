@@ -67,10 +67,19 @@ export function PianoKeyboard({
                 borderBottomColor: isPressed ? '#d97706' : '#94a3b8',
               }}
             >
-              <span className="text-xs font-bold text-gray-400">
-                {key.keyboardChar ? key.keyboardChar.toUpperCase() : ''}
-              </span>
-              <span className="text-[10px] text-gray-500">{key.label}</span>
+              {key.keyboardChar ? (
+                <>
+                  <span className="text-xs font-bold text-gray-400">
+                    {key.keyboardChar.toUpperCase()}
+                  </span>
+                  <span className="text-[10px] text-gray-500">{key.label}</span>
+                </>
+              ) : (
+                // 无物理键的扩展键：显示醒目音符名（仅鼠标/触摸点击）
+                <span className="text-base font-extrabold text-sky-500/80">
+                  {key.label}
+                </span>
+              )}
             </button>
           )
         })}
@@ -111,7 +120,7 @@ export function PianoKeyboard({
               }}
             >
               <span className="text-[10px] font-bold text-gray-300">
-                {key.keyboardChar ? key.keyboardChar.toUpperCase() : ''}
+                {key.keyboardChar ? key.keyboardChar.toUpperCase() : key.label}
               </span>
             </button>
           )

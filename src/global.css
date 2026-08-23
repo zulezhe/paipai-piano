@@ -132,6 +132,117 @@ html, body {
   }
 }
 
+/* ============== 常驻跳舞卡通（小黄鸡） ============== */
+/* SVG group 局部旋转需要 transform-box: fill-box */
+.dc-root g {
+  transform-box: fill-box;
+}
+
+/* 静止（idle）：完全不动 —— 不加任何动画 */
+
+/* 热舞：两套舞步，节奏用 --beat 变量贯通各部位 */
+.dc-groove { --beat: 0.6s; }
+.dc-frenzy { --beat: 0.32s; }
+
+/* 舞步 A（律动版）：慢摆大幅度 */
+.dc-dancing.dc-groove {
+  animation: dc-groove-move var(--beat) ease-in-out infinite;
+}
+@keyframes dc-groove-move {
+  0%, 100% { transform: translateY(0) rotate(-6deg) scaleX(1); }
+  25% { transform: translateY(-22px) rotate(0deg) scaleX(1.03); }
+  50% { transform: translateY(0) rotate(6deg) scaleX(1); }
+  75% { transform: translateY(-22px) rotate(0deg) scaleX(0.97); }
+}
+
+/* 舞步 B（疯狂版）：快跳 + 旋转 + 挤压 */
+.dc-dancing.dc-frenzy {
+  animation: dc-frenzy-move var(--beat) ease-in-out infinite;
+}
+@keyframes dc-frenzy-move {
+  0%, 100% { transform: translateY(0) rotate(-12deg) scaleY(0.92); }
+  25% { transform: translateY(-34px) rotate(0deg) scaleY(1.1); }
+  50% { transform: translateY(0) rotate(12deg) scaleY(0.92); }
+  75% { transform: translateY(-34px) rotate(0deg) scaleY(1.1); }
+}
+
+/* 手臂：交替挥（左右错拍半周期） */
+.dc-dancing .dc-arm-l {
+  transform-origin: 80% 15%;
+  animation: dc-arm-l-wave var(--beat) ease-in-out infinite;
+}
+@keyframes dc-arm-l-wave {
+  0%, 100% { transform: rotate(-15deg); }
+  50% { transform: rotate(75deg); }
+}
+.dc-dancing .dc-arm-r {
+  transform-origin: 20% 15%;
+  animation: dc-arm-r-wave var(--beat) ease-in-out infinite;
+  animation-delay: calc(var(--beat) / -2);
+}
+@keyframes dc-arm-r-wave {
+  0%, 100% { transform: rotate(15deg); }
+  50% { transform: rotate(-75deg); }
+}
+
+/* 腿：两倍速踢踏，左右交替 */
+.dc-dancing .dc-leg-l {
+  transform-origin: 50% 10%;
+  animation: dc-leg-l-kick calc(var(--beat) / 2) ease-in-out infinite;
+}
+@keyframes dc-leg-l-kick {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  50% { transform: rotate(-18deg) translateY(-8px); }
+}
+.dc-dancing .dc-leg-r {
+  transform-origin: 50% 10%;
+  animation: dc-leg-r-kick calc(var(--beat) / 2) ease-in-out infinite;
+  animation-delay: calc(var(--beat) / -4);
+}
+@keyframes dc-leg-r-kick {
+  0%, 100% { transform: rotate(0deg) translateY(-8px); }
+  50% { transform: rotate(18deg) translateY(0); }
+}
+
+/* 嘴：两倍速张合（跟唱） */
+.dc-dancing .dc-beak {
+  transform-origin: 50% 0%;
+  animation: dc-beak-chirp calc(var(--beat) / 2) ease-in-out infinite;
+}
+@keyframes dc-beak-chirp {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.5); }
+}
+
+/* 耳朵：慢一拍半甩（错拍层次感） */
+.dc-dancing .dc-ears {
+  transform-origin: 50% 90%;
+  animation: dc-ears-flap calc(var(--beat) * 1.6) ease-in-out infinite;
+}
+@keyframes dc-ears-flap {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-10deg); }
+}
+
+/* 身体（叠加在整体动作上）：慢速左右扭 */
+.dc-dancing .dc-body {
+  animation: dc-body-twist calc(var(--beat) * 2) ease-in-out infinite;
+}
+@keyframes dc-body-twist {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(4deg); }
+  75% { transform: rotate(-4deg); }
+}
+
+/* 眼睛：热舞时兴奋眯眼 + 周期性眨眼 */
+.dc-dancing .dc-eyes {
+  animation: dc-eyes-blink 1.8s ease-in-out infinite;
+}
+@keyframes dc-eyes-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.15); }
+}
+
 /* 物理按键按下时的琴键发光 */
 .key-pressed-white {
   box-shadow: 0 0 24px 6px rgba(251, 191, 36, 0.75);

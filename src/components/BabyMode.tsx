@@ -1,7 +1,8 @@
 // 宝宝模式：随便按就有声，进度条满 100 触发鼓励 + 彩纸
 // 卡通吉祥物在每次按键时弹跳；每次按键随机冒出动物跳舞 + 音符上飘
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import { PianoKeyboard } from './PianoKeyboard'
+import { DancingCritter, type CritterVariant } from './DancingCritter'
 import { Confetti } from './Confetti'
 import { audioEngine } from '../audio/AudioEngine'
 import { useAppState } from '../state/AppState'
@@ -20,12 +21,22 @@ interface Critter {
 
 let critterSeq = 0
 
+// 常驻卡通形象轮换表：每完成一轮能量条换下一个
+const CRITTER_ROTATION: CritterVariant[] = ['chick', 'bunny', 'cat', 'frog']
+
 export function BabyMode() {
   const { state, dispatch } = useAppState()
   const [showConfetti, setShowConfetti] = useState(false)
   const [pressCount, setPressCount] = useState(0)
   const [critters, setCritters] = useState<Critter[]>([])
   const lastCheerAt = useRef(0)
+  // 热度 tick：驱动常驻卡通 idle/热舞切换（最近按键 <2.5s 即热舞）
+  const [, forceTick] = useReducer((x: number) => x + 1, 0)
+  useEffect(() => {
+    const t = setInterval(forceTick, 500)
+    return () => clearInterval(t)
+  }, [])
+  const dancing = Date.now() - state.lastPressedAt < 2500
 
   // 每次物理/鼠标按键：冒出一个动物跳舞 + 音符上飘（上限 6 个防 DOM 爆炸）
   useEffect(() => {
@@ -60,8 +71,13 @@ export function BabyMode() {
   const handleKey = (noteId: string) => {
     audioEngine.playNote(noteId)
     dispatch({ type: 'PRESS_KEY', noteId, at: Date.now() })
-    setPressCount(c => c + 1)
   }
+
+  // 按键计数统一由 lastPressedAt 驱动（物理键 + 鼠标点击都覆盖），
+  // 用于吉祥物弹跳与跳舞卡通的舞步交替
+  useEffect(() => {
+    if (state.lastPressedAt > 0) setPressCount(c => c + 1)
+  }, [state.lastPressedAt])
 
   // 进度条颜色随进度变化
   const progress = state.babyProgress
@@ -160,6 +176,14 @@ export function BabyMode() {
         activeAt={state.lastPressedAt}
         heightPx={420}
         className="w-full"
+      />
+
+      {/* 常驻跳舞卡通（键盘下方）：静止不动，按键时起舞；
+          每完成一轮能量条（cheerCount+1）换一个形象 */}
+      <DancingCritter
+        dancing={dancing}
+        variant={CRITTER_ROTATION[state.cheerCount % CRITTER_ROTATION.length]}
+        mood={pressCount}
       />
 
       {/* 彩纸飞溅 */}
