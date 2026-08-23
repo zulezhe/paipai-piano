@@ -24,6 +24,14 @@ html, body {
   height: 100vh;
 }
 
+/* 落地页是普通可滚动网页，覆盖桌面全屏应用的锁定样式 */
+html.landing-page, html.landing-page body {
+  height: auto;
+  overflow-y: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 /* 鲜艳儿童友好背景：多层渐变 */
 .app-bg {
   background:
