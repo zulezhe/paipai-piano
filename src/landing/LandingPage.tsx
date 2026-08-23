@@ -105,6 +105,7 @@ export function LandingPage() {
         <nav className="flex items-center gap-6 text-sm">
           <a href="#play" className="opacity-80 hover:opacity-100">在线试玩</a>
           <a href="#features" className="opacity-80 hover:opacity-100">特性</a>
+          <a href="#story" className="opacity-80 hover:opacity-100">项目背景</a>
           <a
             href="https://github.com/"
             target="_blank"
@@ -168,6 +169,43 @@ export function LandingPage() {
               <div className="text-white/75 text-sm leading-relaxed">{f.desc}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* 项目背景 */}
+      <section id="story" className="max-w-5xl mx-auto px-6 py-14">
+        <h2 className="text-3xl font-extrabold text-center mb-10">项目背景</h2>
+        <div className="rounded-3xl bg-white/10 border border-white/15 backdrop-blur-sm p-8 md:p-10 text-lg leading-loose text-white/90 space-y-5">
+          <p>
+            这个项目源于一件每位程序员家长都懂的事：我在用电脑工作的时候，
+            家里的宝宝<span className="font-bold text-yellow-200">派派</span>总喜欢凑过来拍打键盘。
+            小手一挥，代码被选中的选中、删掉的删掉，窗口关了一片，
+            每次都把我的内容弄得一团糟。
+          </p>
+          <p>
+            与其每次手忙脚乱地按撤销，不如换个思路——
+            宝宝拍键盘不是捣乱，是想参与、想要反馈。
+            于是我给他做了这个玩具：<span className="font-bold">一架不管怎么按都有回应的模拟钢琴</span>。
+            随便拍、随便按，每个按键都有声音、有高亮、有跳舞的小动物，
+            而屏幕里的工作内容再也不会被弄乱。
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+            <div className="rounded-2xl bg-black/20 p-5 text-center">
+              <div className="text-3xl mb-2">🐣</div>
+              <div className="font-bold mb-1">卡通</div>
+              <div className="text-sm text-white/70">小黄鸡、粉兔、灰猫、绿蛙轮换登场，宝宝看一眼就喜欢</div>
+            </div>
+            <div className="rounded-2xl bg-black/20 p-5 text-center">
+              <div className="text-3xl mb-2">✨</div>
+              <div className="font-bold mb-1">反馈强</div>
+              <div className="text-sm text-white/70">每个键都有琴声、按键高亮和跳舞动画，拍多久都不冷场</div>
+            </div>
+            <div className="rounded-2xl bg-black/20 p-5 text-center">
+              <div className="text-3xl mb-2">🔒</div>
+              <div className="font-bold mb-1">不会误触</div>
+              <div className="text-sm text-white/70">桌面版锁死全部系统快捷键，宝宝再怎么按也退不出、删不掉</div>
+            </div>
+          </div>
         </div>
       </section>
 
