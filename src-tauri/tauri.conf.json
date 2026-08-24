@@ -14,8 +14,8 @@
       {
         "label": "main",
         "title": "派派钢琴",
-        "fullscreen": false,
-        "maximized": true,
+        "fullscreen": true,
+        "maximized": false,
         "alwaysOnTop": true,
         "decorations": false,
         "transparent": false,

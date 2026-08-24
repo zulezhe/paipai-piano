@@ -13,15 +13,10 @@ async fn exit_app(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
-/// 切换全键盘锁定：宝宝模式 true（吞掉所有按键，仅转发出声），其他模式 false
+/// 切换全键盘锁定（宝宝模式是唯一模式，Rust 侧默认已锁，此命令仅作前端兜底）
 #[tauri::command]
 fn set_keyboard_lock(locked: bool) {
-    eprintln!("[main] set_keyboard_lock({})", locked); // TODO(diag): 临时诊断
     keyboard_hook::set_lock_all(locked);
-    if locked {
-        // 重装钩子抢回链头：压制比我们后启动的钩子型热键软件（如 Snipaste）
-        keyboard_hook::reinstall();
-    }
 }
 
 fn main() {
