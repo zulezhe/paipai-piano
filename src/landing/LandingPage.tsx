@@ -107,7 +107,7 @@ export function LandingPage() {
           <a href="#features" className="opacity-80 hover:opacity-100">特性</a>
           <a href="#story" className="opacity-80 hover:opacity-100">项目背景</a>
           <a
-            href="https://github.com/"
+            href="https://github.com/zulezhe/paipai-piano/releases/latest"
             target="_blank"
             rel="noreferrer"
             className="px-4 py-2 rounded-full bg-white/90 text-slate-800 font-bold hover:bg-white"
@@ -134,7 +134,7 @@ export function LandingPage() {
             🎹 立即试玩
           </a>
           <a
-            href="https://github.com/"
+            href="https://github.com/zulezhe/paipai-piano/releases/latest/download/paipai-piano_x64-setup.exe"
             target="_blank"
             rel="noreferrer"
             className="px-8 py-3 rounded-full border-2 border-white/60 font-bold text-lg hover:bg-white/10"
